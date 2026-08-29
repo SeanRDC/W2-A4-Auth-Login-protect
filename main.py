@@ -94,7 +94,12 @@ def public():
 def protected(authorization: str | None = Header(default=None)):
     if authorization is None or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail={"error": "Access token required"})
-    return JSONResponse(status_code=200, content={"message": "success"})
+    access_token = authorization.replace("Bearer ", "")
+    try:
+        response = supabase.auth.get_user(access_token)
+        return JSONResponse(status_code=200, content={"id": response.user.id, "email": response.user.email, "created_at": str(response.user.created_at)})
+    except Exception as e:
+        raise HTTPException(status_code=401, detail={"error": "Invalid or expired token."})
 
 # get all the tasks, search for a specific task(s), get filtered tasks by status
 @app.get("/tasks")
