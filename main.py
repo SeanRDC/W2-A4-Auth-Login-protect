@@ -1,17 +1,17 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel
 from datetime import datetime
 import psycopg
 import os
 from dotenv import load_dotenv
-from supabase import create_client, Client
+from supabase import create_client
 
 load_dotenv()
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 app = FastAPI()
 
@@ -62,6 +62,27 @@ def health_check():
     except Exception:
         return{"status": "ok","db": "down"}
     
+@app.post("/auth/signup")
+def signup(credentials: UserCredentials):
+    email = credentials.email
+    password = credentials.password
+    
+    try:
+        response = supabase.auth.sign_up({"email": email, "password": password})
+        return response.user
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/auth/login")
+def login(credentials: UserCredentials):
+    email = credentials.email
+    password = credentials.password
+    
+    try:
+        response = supabase.auth.sign_in_with_password({"email": email, "password": password})
+        return {"access_token": response.session.access_token, "refresh_token": response.session.refresh_token}
+    except:
+        raise HTTPException(status_code=401, detail={"error": "Invalid log in Credentials"})
 
 # get all the tasks, search for a specific task(s), get filtered tasks by status
 @app.get("/tasks")
@@ -176,3 +197,5 @@ def get_status():
     result = cursor.fetchone()
     connection.close()
     return {"total_tasks": result[0]}
+
+# Login auth

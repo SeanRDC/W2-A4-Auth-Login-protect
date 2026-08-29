@@ -4,9 +4,14 @@ services:
     ports: ["8000:8000"]
     environment:
       DATABASE_URL: postgres://postgres:dev@db:5432/tasks
+    env_file:
+      - .env
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - ./:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
   db:
     image: postgres:17
     environment:
