@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends, Header
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel
 from datetime import datetime
@@ -61,7 +61,8 @@ def health_check():
         return{"status": "ok","db": "ok"}
     except Exception:
         return{"status": "ok","db": "down"}
-    
+
+# authentication signup pr create an account
 @app.post("/auth/signup")
 def signup(credentials: UserCredentials):
     email = credentials.email
@@ -73,6 +74,7 @@ def signup(credentials: UserCredentials):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+# authentication to log in
 @app.post("/auth/login")
 def login(credentials: UserCredentials):
     email = credentials.email
@@ -83,6 +85,16 @@ def login(credentials: UserCredentials):
         return {"access_token": response.session.access_token, "refresh_token": response.session.refresh_token}
     except:
         raise HTTPException(status_code=401, detail={"error": "Invalid log in Credentials"})
+    
+@app.get("/public/info")
+def public():
+    return JSONResponse(status_code=200, content={"message": "Welcome stranger! This info is public."})
+
+@app.get("/protected/profile")
+def protected(authorization: str | None = Header(default=None)):
+    if authorization is None or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail={"error": "Access token required"})
+    return JSONResponse(status_code=200, content={"message": "success"})
 
 # get all the tasks, search for a specific task(s), get filtered tasks by status
 @app.get("/tasks")
