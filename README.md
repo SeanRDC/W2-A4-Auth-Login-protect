@@ -44,6 +44,7 @@ FastAPI automatically generates interactive API documentation. You can access it
 A JWT contains a readable payload of 'claims' about a user, such as their unique ID, email, and session expiration timestamp. You should never store sensitive secrets inside a JWT because the payload is merely encoded, not encrypted, meaning anyone who gets their hands on the token can easily read its contents.
 
 ## The expiry experiment
+Access tokens are deliberately short-lived so that if one is stolen, the attacker only has a very brief window to use it, once it expires, the application uses a secure, long-lived refresh token behind the scenes to obtain a new access token without forcing the user to re-enter their password.
 
 ## A 403 case
 
