@@ -1,3 +1,4 @@
+# Imports
 from fastapi import FastAPI, HTTPException, Depends, Header
 from fastapi.responses import JSONResponse, Response
 from fastapi.security import HTTPBearer
@@ -8,16 +9,21 @@ import os
 from dotenv import load_dotenv
 from supabase import create_client
 
+# Load the env
 load_dotenv()
 
+# Connect to supabase and create client
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
+# Connect to bearer
 token_auth_scheme = HTTPBearer()
 
+# Connect ot fastapi
 app = FastAPI()
 
+# Basemodels template
 class TaskCreate(BaseModel):
     title: str = None
 
@@ -28,7 +34,8 @@ class TaskUpdate(BaseModel):
 class UserCredentials(BaseModel):
     email: str
     password: str
-    
+
+# Main user authorization setup for endpoints
 def get_current_user(authorization: str = Depends(token_auth_scheme)):
     access_token = authorization.credentials
     try:
@@ -58,10 +65,12 @@ def init_db():
     connection.close()
 init_db()
 
+# Get root and versions
 @app.get("/")
 def root():
     return {"name": "Task API", "version": "1.0", "endpoints": ["/tasks"]}
 
+# Get health
 @app.get("/health")
 def health_check():
     try:
@@ -96,20 +105,24 @@ def login(credentials: UserCredentials):
         return {"access_token": response.session.access_token, "refresh_token": response.session.refresh_token}
     except:
         raise HTTPException(status_code=401, detail={"error": "Invalid log in Credentials"})
-    
+
+# Get public dashboard typically landing pages
 @app.get("/public/info")
 def public():
     return JSONResponse(status_code=200, content={"message": "Welcome stranger! This info is public."})
 
+# Get private profile
 @app.get("/protected/profile")
 def protected_profile(user = Depends(get_current_user)):
     user_details = {"id": user.id, "email": user.email, "created_at": str(user.created_at)}
     return JSONResponse(status_code=200, content=user_details)
 
+# Get private dashbaord
 @app.get("/protected/dashboard")
 def protected_dashboard(user = Depends(get_current_user)):
     return JSONResponse(status_code=200, content={"message": f"success user: {user.email}"})
 
+# Logout current user
 @app.post("/auth/logout")
 def logout(user = Depends(get_current_user)):
     supabase.auth.sign_out()
@@ -228,5 +241,3 @@ def get_status():
     result = cursor.fetchone()
     connection.close()
     return {"total_tasks": result[0]}
-
-# Login auth
