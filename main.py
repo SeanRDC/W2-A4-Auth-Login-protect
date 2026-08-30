@@ -122,6 +122,13 @@ def protected_profile(user = Depends(get_current_user)):
 def protected_dashboard(user = Depends(get_current_user)):
     return JSONResponse(status_code=200, content={"message": f"success user: {user.email}"})
 
+# Admin authorization level access
+@app.get("/protected/admin")
+def protected_admin(user = Depends(get_current_user)):
+    if user.email != "admin@example.com".strip():
+        raise HTTPException(status_code=403,detail={"error": "Admin only"})
+    return JSONResponse(status_code=200, content={"message":"Welcome Admin!"})
+
 # Logout current user
 @app.post("/auth/logout")
 def logout(user = Depends(get_current_user)):

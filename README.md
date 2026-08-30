@@ -46,7 +46,8 @@ A JWT contains a readable payload of 'claims' about a user, such as their unique
 ## The expiry experiment
 Access tokens are deliberately short-lived so that if one is stolen, the attacker only has a very brief window to use it, once it expires, the application uses a secure, long-lived refresh token behind the scenes to obtain a new access token without forcing the user to re-enter their password.
 
-## A 403 case
+## A 403 case (401 vs 403)
+A 401 Unauthorized error means the server doesn't know who you are, whereas a 403 Forbidden error means the server knows exactly who you are, but you do not have the required permission level to access that specific resource.
 
 ## A Real logout Test
 
