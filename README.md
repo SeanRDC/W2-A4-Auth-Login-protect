@@ -53,3 +53,7 @@ A 401 Unauthorized error means the server doesn't know who you are, whereas a 40
 Because JWTs are stateless and verified cryptographically rather than against a database, instant logout is inherently difficult; a server cannot reach into a client's browser to destroy an existing token, meaning the token remains technically valid until it naturally expires even after the server has destroyed the session.
 
 ## Refresh flow
+Added a /auth/refresh endpoint to handle session continuation. Access tokens are deliberately short-lived to minimize the security window if a token is stolen; this refresh endpoint allows the frontend to securely exchange a long-lived refresh token for a fresh access token without interrupting the user's experience by forcing them to log in again.
+
+## Rate Limiting
+Brute-force protection and rate-limiting specifically live on the POST /auth/login endpoint because it is the primary public gateway where attackers can attempt dictionary attacks to guess passwords. By returning a 429 Too Many Requests status after too many failed attempts, the server financially and temporally bankrupts automated attacks before they can breach an account.

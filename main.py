@@ -8,6 +8,7 @@ import psycopg
 import os
 from dotenv import load_dotenv
 from supabase import create_client
+from gotrue.errors import AuthApiError
 
 # Load the env
 load_dotenv()
@@ -34,6 +35,9 @@ class TaskUpdate(BaseModel):
 class UserCredentials(BaseModel):
     email: str
     password: str
+    
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
 
 # Main user authorization setup for endpoints
 def get_current_user(authorization: str = Depends(token_auth_scheme)):
@@ -128,6 +132,17 @@ def protected_admin(user = Depends(get_current_user)):
     if user.email != "admin@example.com".strip():
         raise HTTPException(status_code=403,detail={"error": "Admin only"})
     return JSONResponse(status_code=200, content={"message":"Welcome Admin!"})
+
+# Token refresh
+@app.post("/auth/refresh")
+def refresh(refresh_token: RefreshTokenRequest):
+    try:
+        response = supabase.auth.refresh_session(refresh_token.refresh_token)
+        return JSONResponse(status_code=200, content={"access_token": response.session.access_token, "refresh_token": response.session.refresh_token})
+    except AuthApiError as e:
+        raise HTTPException(status_code=401, detail={"error": str(e)})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail={"error": str(e)})
 
 # Logout current user
 @app.post("/auth/logout")

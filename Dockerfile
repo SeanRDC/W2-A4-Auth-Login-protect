@@ -3,7 +3,7 @@
 # Stage 1: Builder
 FROM python:3.12 AS builder
 WORKDIR /app
-RUN pip install --user --no-cache-dir fastapi "uvicorn[standard]" "psycopg[binary]" pydantic python-dotenv supabase
+RUN pip install --user --no-cache-dir fastapi "uvicorn[standard]" "psycopg[binary]" pydantic python-dotenv supabase gotrue
 
 # Stage 2: lightweigth
 FROM python:3.12-slim AS runner
