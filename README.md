@@ -50,5 +50,6 @@ Access tokens are deliberately short-lived so that if one is stolen, the attacke
 A 401 Unauthorized error means the server doesn't know who you are, whereas a 403 Forbidden error means the server knows exactly who you are, but you do not have the required permission level to access that specific resource.
 
 ## A Real logout Test
+Because JWTs are stateless and verified cryptographically rather than against a database, instant logout is inherently difficult; a server cannot reach into a client's browser to destroy an existing token, meaning the token remains technically valid until it naturally expires even after the server has destroyed the session.
 
 ## Refresh flow
