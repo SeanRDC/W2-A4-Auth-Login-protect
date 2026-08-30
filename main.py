@@ -25,6 +25,16 @@ class TaskUpdate(BaseModel):
 class UserCredentials(BaseModel):
     email: str
     password: str
+    
+def get_current_user(authorization: str = Header(default=None)):
+    if authorization is None or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail={"error": "Access token required"})
+    access_token = authorization.replace("Bearer ", "")
+    try:
+        response = supabase.auth.get_user(access_token)
+        return response.user
+    except:
+        raise HTTPException(status_code=401, detail={"error": "Invalid or expired token."})
 
 # Connect to the database via psycopg
 def open_db():
@@ -91,15 +101,18 @@ def public():
     return JSONResponse(status_code=200, content={"message": "Welcome stranger! This info is public."})
 
 @app.get("/protected/profile")
-def protected(authorization: str | None = Header(default=None)):
-    if authorization is None or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail={"error": "Access token required"})
-    access_token = authorization.replace("Bearer ", "")
-    try:
-        response = supabase.auth.get_user(access_token)
-        return JSONResponse(status_code=200, content={"id": response.user.id, "email": response.user.email, "created_at": str(response.user.created_at)})
-    except Exception as e:
-        raise HTTPException(status_code=401, detail={"error": "Invalid or expired token."})
+def protected_profile(user = Depends(get_current_user)):
+    user_details = {"id": user.id, "email": user.email, "created_at": str(user.created_at)}
+    return JSONResponse(status_code=200, content=user_details)
+
+@app.get("/protected/dashboard")
+def protected_dashboard(user = Depends(get_current_user)):
+    return JSONResponse(status_code=200, content={"message": f"success user: {user.email}"})
+
+@app.post("/auth/logout")
+def logout(user = Depends(get_current_user)):
+    supabase.auth.sign_out()
+    return Response(status_code=204)
 
 # get all the tasks, search for a specific task(s), get filtered tasks by status
 @app.get("/tasks")
