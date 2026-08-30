@@ -39,3 +39,14 @@ The server will start and be accessible at `http://localhost:8000`.
 FastAPI automatically generates interactive API documentation. You can access it by navigating to `http://localhost:8000/docs` while the containers are running. The protected routes are secured using the `HTTPBearer` scheme, allowing you to test the locked doors directly from the browser.
 
 ![Swagger UI Execution](Swaggerss.png)
+
+## Read The Token Yourself
+A JWT contains a readable payload of 'claims' about a user, such as their unique ID, email, and session expiration timestamp. You should never store sensitive secrets inside a JWT because the payload is merely encoded, not encrypted, meaning anyone who gets their hands on the token can easily read its contents.
+
+## The expiry experiment
+
+## A 403 case
+
+## A Real logout Test
+
+## Refresh flow
