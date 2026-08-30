@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, Depends, Header
 from fastapi.responses import JSONResponse, Response
+from fastapi.security import HTTPBearer
 from pydantic import BaseModel
 from datetime import datetime
 import psycopg
@@ -12,6 +13,8 @@ load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+token_auth_scheme = HTTPBearer()
 
 app = FastAPI()
 
@@ -26,10 +29,8 @@ class UserCredentials(BaseModel):
     email: str
     password: str
     
-def get_current_user(authorization: str = Header(default=None)):
-    if authorization is None or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail={"error": "Access token required"})
-    access_token = authorization.replace("Bearer ", "")
+def get_current_user(authorization: str = Depends(token_auth_scheme)):
+    access_token = authorization.credentials
     try:
         response = supabase.auth.get_user(access_token)
         return response.user
